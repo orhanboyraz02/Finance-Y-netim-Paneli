@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anadolu Network OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #0a0f2c; min-height: 100vh; margin: 0; padding: 0; }
+        .text-gold { color: #f5b042 !important; }
+        .text-gold-light { color: #f5b042cc !important; }
+        .bg-gold { background: #f5b042; }
+        .btn-gold { background: #f5b042; color: #0a0f2c; font-weight: bold; padding: 10px 24px; border-radius: 12px; cursor: pointer; border: none; font-size: 15px; }
+        .btn-gold:hover { opacity: 0.9; transform: scale(1.02); }
+        .card { background: rgba(18, 23, 63, 0.95); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #1e2556; }
+        .card:hover { border-color: #f5b042; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100%; background: #0a0f2c; padding: 16px; border-right: 1px solid #1e2556; overflow-y: auto; z-index: 100; }
+        .main { margin-left: 260px; padding: 20px; }
+        .menu-item { padding: 10px 14px; margin: 3px 0; border-radius: 10px; cursor: pointer; color: #9ca3af; display: flex; align-items: center; gap: 12px; transition: 0.2s; font-size: 13px; }
+        .menu-item:hover { background: rgba(245,176,66,0.15); color: #f5b042; }
+        .menu-active { background: #f5b042; color: #0a0f2c; }
+        .badge { background: rgba(245,176,66,0.2); color: #f5b042; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+        .stat-card { text-align: center; padding: 14px; background: rgba(0,0,0,0.2); border-radius: 12px; }
+        .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 14px; }
+        .module-card { background: rgba(18,23,63,0.95); border-radius: 14px; padding: 16px; border: 1px solid #1e2556; cursor: pointer; transition: 0.2s; }
+        .module-card:hover { border-color: #f5b042; transform: translateY(-2px); }
+        .plan-card { background: #0f2c44; border-radius: 16px; padding: 18px; text-align: center; border: 1px solid #1e2556; transition: 0.2s; }
+        .plan-card:hover { border-color: #f5b042; transform: translateY(-2px); }
+        .plan-popular { border: 2px solid #f5b042; }
+        .product-card { background: #0f2c44; border-radius: 14px; padding: 16px; border: 1px solid #1e2556; transition: 0.2s; text-align: center; }
+        .product-card:hover { border-color: #f5b042; transform: translateY(-2px); }
+        .footer { text-align: center; padding: 16px; margin-top: 20px; border-top: 1px solid #1e2556; color: #d1d5db; font-size: 14px; }
+        .footer a, .footer span { color: #d1d5db; }
+        .footer .text-gold { color: #f5b042 !important; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #12173f; border-radius: 20px; max-width: 600px; width: 90%; padding: 30px; border: 1px solid #f5b042; max-height: 80vh; overflow-y: auto; }
+        .progress-bar { height: 5px; background: #1e2556; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(135deg, #f5b042, #34d399); border-radius: 10px; }
+        .input-dark { background: #0f1338; border: 1px solid #1e2556; color: white; border-radius: 10px; padding: 10px 14px; width: 100%; margin-bottom: 10px; }
+        .input-dark:focus { outline: none; border-color: #f5b042; }
+        .admin-modal { max-width: 700px; }
+        .duyuru-item { background: #0f2c44; border-left: 3px solid #f5b042; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
+        .login-modal { max-width: 450px; }
+        .auth-input { background: #0f1338; border: 1px solid #1e2556; color: white; border-radius: 10px; padding: 12px 16px; width: 100%; margin-bottom: 12px; font-size: 14px; }
+        .auth-input:focus { outline: none; border-color: #f5b042; }
+        .auth-btn { background: #f5b042; color: #0a0f2c; font-weight: bold; padding: 12px; border-radius: 10px; border: none; cursor: pointer; width: 100%; font-size: 15px; }
+        .auth-btn:hover { opacity: 0.9; }
+        .info-item { background: #0f1338; padding: 12px; border-radius: 8px; border-bottom: 1px solid #1e2556; display: flex; justify-content: space-between; align-items: center; }
+        .info-item:hover { background: #1a1f4a; }
+        .vakif-card { background: #0f2c44; border-radius: 12px; padding: 16px; border: 1px solid #1e2556; transition: 0.2s; }
+        .vakif-card:hover { border-color: #f5b042; }
+        .trend-up { color: #34d399; }
+        .trend-down { color: #ef4444; }
+        .trend-neutral { color: #f5b042; }
+        .product-img { font-size: 48px; display: block; margin: 0 auto 8px; }
+        .lang-btn { background: transparent; border: 1px solid #f5b04240; color: #f5b042; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .lang-btn:hover { background: #f5b04220; }
+        .lang-btn-active { background: #f5b042; color: #0a0f2c; border-color: #f5b042; }
+        h1, h2, h3, h4, .gold-text, .big-gold { color: #f5b042 !important; }
+        p, li, span, .white-text, .readable-text { color: #e5e7eb !important; font-size: 14px; line-height: 1.6; }
+        .small-text { font-size: 12px; color: #9ca3af !important; }
+        .big-title { font-size: 28px; font-weight: 700; color: #f5b042 !important; }
+        .mid-title { font-size: 20px; font-weight: 600; color: #f5b042 !important; }
+        .level-rank { font-size: 18px; font-weight: 700; color: #f5b042 !important; }
+        .level-xp { font-size: 16px; font-weight: 600; color: #ffffff !important; }
+        .level-desc { font-size: 14px; color: #d1d5db !important; }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+    // ============================================================
+    // STATE
+    // ============================================================
+    var currentPage = "dashboard";
+    var isAdmin = false;
+    var isLoggedIn = false;
+    var currentUserObj = null;
+    var currentLang = "tr";
+    
+    var translations = {
+        tr: {
+            title: "Anadolu OS",
+            login: "Giriş Yap",
+            logout: "Çıkış",
+            admin: "Yönetim",
+            dashboard: "Genel Bakış",
+            fire: "FIRE Üniversitesi",
+            financial: "Finansal Özgürlük",
+            social: "Sosyal Ağ",
+            digital: "Dijital Vatandaşlık",
+            leadership: "Liderlik Akademisi",
+            investment: "Yatırım Platformu",
+            entrepreneurship: "Girişimcilik",
+            cooperative: "Kooperatif Ekonomi",
+            digitalstate: "Dijital Devlet",
+            thinktank: "Strateji Düşünce",
+            ai: "AI Danışmanlar",
+            library: "Bilgi Kütüphanesi",
+            vision: "Vizyon 2053",
+            health: "Sağlık & Termal",
+            analytics: "Analitik Merkezi",
+            vakif: "Vakıf",
+            trend: "Trend Analiz",
+            market: "Doğal & Dijital Market",
+            packages: "Paketler",
+            ortaklik: "Ortaklık",
+            erdem: "13 Erdem",
+            duyuru: "Duyurular",
+            levels: "Seviyeler",
+            whatsapp_buy: "WhatsApp ile Satın Al",
+            join: "Katıl",
+            buy: "Satın Al",
+            add: "Ekle",
+            delete: "Sil",
+            welcome: "Hoş geldiniz",
+            rank: "Seviye",
+            xp: "XP",
+            reputation: "İtibar"
+        },
+        en: {
+            title: "Anadolu OS",
+            login: "Login",
+            logout: "Logout",
+            admin: "Management",
+            dashboard: "Dashboard",
+            fire: "FIRE University",
+            financial: "Financial Freedom",
+            social: "Social Network",
+            digital: "Digital Citizenship",
+            leadership: "Leadership Academy",
+            investment: "Investment Platform",
+            entrepreneurship: "Entrepreneurship",
+            cooperative: "Cooperative Economy",
+            digitalstate: "Digital State",
+            thinktank: "Think Tank",
+            ai: "AI Advisors",
+            library: "Knowledge Library",
+            vision: "Vision 2053",
+            health: "Health & Thermal",
+            analytics: "Analytics Center",
+            vakif: "Foundation",
+            trend: "Trend Analysis",
+            market: "Natural & Digital Market",
+            packages: "Packages",
+            ortaklik: "Partnership",
+            erdem: "13 Virtues",
+            duyuru: "Announcements",
+            levels: "Levels",
+            whatsapp_buy: "Buy via WhatsApp",
+            join: "Join",
+            buy: "Buy",
+            add: "Add",
+            delete: "Delete",
+            welcome: "Welcome",
+            rank: "Rank",
+            xp: "XP",
+            reputation: "Reputation"
+        }
+    };
+    
+    function t(key) {
+        return translations[currentLang][key] || key;
+    }
+    
+    var users = [
+        { id: 1, email: "admin@anadolu.com", password: "admin123", name: "Orhan BOYRAZ", role: "admin" },
+        { id: 2, email: "demo@anadolu.com", password: "demo123", name: "Demo Kullanici", role: "user" }
+    ];
+    
+    var userProfile = {
+        name: "Orhan BOYRAZ",
+        currentRank: "Kagan",
+        xp: 28450,
+        reputation: 92,
+        ortaklik: "Elmas Ortak"
+    };
+    
+    // ============================================================
+    // RANK SEVIYELERI
+    // ============================================================
+    var rankLevels = [
+        { name: "Ortak", xp: 0, icon: "fa-handshake", desc: "Başlangıç seviyesi" },
+        { name: "Usta", xp: 5000, icon: "fa-award", desc: "Deneyim kazanmış" },
+        { name: "Uzman", xp: 10000, icon: "fa-graduation-cap", desc: "Uzmanlık seviyesi" },
+        { name: "Yoldaş", xp: 20000, icon: "fa-users", desc: "Topluluk lideri" },
+        { name: "Lider", xp: 35000, icon: "fa-crown", desc: "Liderlik seviyesi" },
+        { name: "Pir", xp: 50000, icon: "fa-star", desc: "Bilge seviyesi" },
+        { name: "Kagan", xp: 75000, icon: "fa-chess-king", desc: "En yüksek seviye" }
+    ];
+    
+    function getCurrentRank() {
+        var current = rankLevels[0];
+        for (var i = rankLevels.length - 1; i >= 0; i--) {
+            if (userProfile.xp >= rankLevels[i].xp) {
+                current = rankLevels[i];
+                break;
+            }
+        }
+        return current;
+    }
+    
+    function getNextRank() {
+        var current = getCurrentRank();
+        var idx = rankLevels.indexOf(current);
+        if (idx < rankLevels.length - 1) return rankLevels[idx + 1];
+        return null;
+    }
+    
+    function getProgressToNext() {
+        var current = getCurrentRank();
+        var next = getNextRank();
+        if (!next) return 100;
+        var progress = ((userProfile.xp - current.xp) / (next.xp - current.xp)) * 100;
+        return Math.min(progress, 100);
+    }
+    
+    // ============================================================
+    // MODUL ICERIKLERI
+    // ============================================================
+    var moduleContents = {
+        "fire-university": {
+            title: "FIRE Üniversitesi",
+            icon: "fa-graduation-cap",
+            items: ["Finansal Okuryazarlık Temelleri", "Yatırım Stratejileri", "Girişimcilik 101", "Liderlik ve Yönetim", "Dijital Pazarlama", "Kişisel Gelişim", "Kariyer Planlama"]
+        },
+        "financial-freedom": {
+            title: "Finansal Özgürlük",
+            icon: "fa-chart-line",
+            items: ["FIRE Hesaplayıcı", "Portföy Takibi", "Pasif Gelir Planlayıcı", "Bütçe Yönetimi", "Borç Yönetimi", "Vergi Planlaması", "Emeklilik Stratejileri"]
+        },
+        "social-network": {
+            title: "Sosyal Ağ",
+            icon: "fa-users",
+            items: ["Topluluk Grupları", "Forumlar", "Mesajlaşma", "Etkinlikler", "Proje Paylaşımları", "Bildirimler", "Arkadaşlık Sistemi"]
+        },
+        "digital-citizenship": {
+            title: "Dijital Vatandaşlık",
+            icon: "fa-id-card",
+            items: ["Dijital Kimlik", "Oy Verme Sistemi", "Katılım Platformu", "Vatandaşlık Hakları", "Dijital Sorumluluklar", "E-Devlet Entegrasyonu", "Dijital Cüzdan"]
+        },
+        "leadership-academy": {
+            title: "Liderlik Akademisi",
+            icon: "fa-crown",
+            items: ["Stratejik Düşünme", "Kriz Yönetimi", "Diplomasi", "Topluluk Yönetimi", "Vizyoner Liderlik", "Ekip Yönetimi", "Karar Verme"]
+        },
+        "investment-platform": {
+            title: "Yatırım Platformu",
+            icon: "fa-arrow-trend-up",
+            items: ["Hisse Senedi Analizi", "Kripto Para Takibi", "Gayrimenkul Yatırımı", "Risk Yönetimi", "Portföy Çeşitlendirme", "Temel Analiz", "Teknik Analiz"]
+        },
+        "entrepreneurship": {
+            title: "Girişimcilik",
+            icon: "fa-briefcase",
+            items: ["İş Fikri Geliştirme", "İş Planı Hazırlama", "SWOT Analizi", "Pazar Araştırması", "Yatırımcı Eşleştirme", "Startup Hukuku", "Ölçeklendirme"]
+        },
+        "cooperative-economy": {
+            title: "Kooperatif Ekonomi",
+            icon: "fa-hand-holding-heart",
+            items: ["Kooperatif Kurulumu", "Üretim Ağları", "Pazar Erişimi", "Kar Dağıtımı", "Ortaklık Modelleri", "Dayanışma Ekonomisi", "Sürdürülebilirlik"]
+        },
+        "digital-state": {
+            title: "Dijital Devlet",
+            icon: "fa-landmark",
+            items: ["Dijital Meclis", "Adalet Sistemi", "Politika Geliştirme", "Stratejik Planlama", "Şeffaflık Raporları", "Dijital Vergi", "Kamu Hizmetleri"]
+        },
+        "think-tank": {
+            title: "Strateji Düşünce",
+            icon: "fa-brain",
+            items: ["Ekonomik Raporlar", "Teknoloji Analizleri", "Eğitim Politikaları", "Tarım Stratejileri", "Enerji Planlaması", "Demografi Raporları", "Küresel Trendler"]
+        },
+        "ai-advisors": {
+            title: "AI Danışmanlar",
+            icon: "fa-robot",
+            items: ["🤖 AI Başkan (Strateji)", "🤖 AI Ekonomist", "🤖 AI Yatırımcı", "🤖 AI Eğitmen", "🤖 AI Tarihçi", "🤖 AI Filozof", "🤖 AI Hukukçu"]
+        },
+        "knowledge-library": {
+            title: "Bilgi Kütüphanesi",
+            icon: "fa-book",
+            items: ["Anadolu Manifestosu", "Toplum Sözleşmesi", "Ekonomi Modeli", "Araştırma Raporları", "Felsefe Metinleri", "Tarih Belgeleri", "Bilim Makaleleri"]
+        },
+        "vision-2053": {
+            title: "Vizyon 2053",
+            icon: "fa-eye",
+            items: ["2026 Hedefleri", "2035 Kriterleri", "2053 Vizyonu", "2071 Yol Haritası", "2126 Uzun Vadeli Plan", "Sürdürülebilir Kalkınma", "Küresel Liderlik"]
+        },
+        "thermal-life": {
+            title: "Sağlık & Termal",
+            icon: "fa-heart",
+            items: ["Sağlık Dashboard'u", "Doğal Tedavi Yöntemleri", "Termal Tesis Rehberi", "Bitkisel İlaçlar", "Yaşlanma Karşıtı Program", "Beslenme Rehberi", "Meditasyon ve Yoga"]
+        },
+        "analytics-center": {
+            title: "Analitik Merkezi",
+            icon: "fa-chart-pie",
+            items: ["Üye Büyüme Grafikleri", "Ekonomik Aktivite Raporu", "Yatırım Performansı", "Eğitim Metrikleri", "Topluluk Katılımı", "Risk Analizi", "Trend Tahminleri"]
+        },
+        "vakif": {
+            title: "Vakıf Sistemi",
+            icon: "fa-hand-holding-heart",
+            items: ["Vakıf Kuruluşu", "Bağış Yönetimi", "Proje Destekleme", "Toplumsal Fayda", "Sürdürülebilir Vakıf", "Gönüllü Yönetimi", "Raporlama ve Şeffaflık"]
+        },
+        "trend-analiz": {
+            title: "Trend Analizleri",
+            icon: "fa-chart-line",
+            items: ["Piyasa Trendleri", "Yatırım Trendleri", "Teknoloji Trendleri", "Sosyal Trendler", "Ekonomik Göstergeler", "Sektörel Analizler"]
+        }
+    };
+    
+    // ============================================================
+    // TREND ANALIZLERI VERILERI
+    // ============================================================
+    var trendData = {
+        labels: ["Oca", "Şub", "Mar", "Nis", "May", "Haz"],
+        values: [65, 72, 68, 85, 90, 78],
+        categories: [
+            { name: "Altın", change: "+12.4%", direction: "up" },
+            { name: "Bitcoin", change: "+23.7%", direction: "up" },
+            { name: "BIST 100", change: "-3.2%", direction: "down" },
+            { name: "Dolar", change: "+2.1%", direction: "up" },
+            { name: "Petrol", change: "-1.8%", direction: "down" }
+        ]
+    };
+    
+    // ============================================================
+    // MARKET URUNLERI (12 Urun)
+    // ============================================================
+    var marketProducts = [
+        { id: 1, name: "Organik Zeytinyağı", price: 299, category: "Gıda", image: "🫒", stock: 45 },
+        { id: 2, name: "Elma Sirkesi (Doğal)", price: 89, category: "Sağlık", image: "🍎", stock: 120 },
+        { id: 3, name: "Bal (Kestane)", price: 199, category: "Gıda", image: "🍯", stock: 60 },
+        { id: 4, name: "Keten Tohumu Yağı", price: 159, category: "Sağlık", image: "🌱", stock: 35 },
+        { id: 5, name: "Lavanta Sabunu", price: 79, category: "Kozmetik", image: "🧼", stock: 80 },
+        { id: 6, name: "Zerdeçal Tozu", price: 49, category: "Baharat", image: "🌿", stock: 150 },
+        { id: 7, name: "Propolis Damlası", price: 129, category: "Sağlık", image: "💧", stock: 25 },
+        { id: 8, name: "Tarçın Çubuğu", price: 39, category: "Baharat", image: "🪵", stock: 200 },
+        { id: 9, name: "Arı Poleni", price: 149, category: "Sağlık", image: "🐝", stock: 40 },
+        { id: 10, name: "Susam Yağı", price: 119, category: "Gıda", image: "🌾", stock: 55 },
+        { id: 11, name: "Kara Biber (Tane)", price: 29, category: "Baharat", image: "🫘", stock: 300 },
+        { id: 12, name: "Çörek Otu Yağı", price: 169, category: "Sağlık", image: "🌿", stock: 30 }
+    ];
+    
+    // ============================================================
+    // VAKIF VERILERI
+    // ============================================================
+    var vakifData = {
+        name: "Anadolu Vakfı",
+        established: "2025",
+        mission: "Toplumsal kalkınma, eğitim ve kültür hizmetleri",
+        projects: ["Eğitim Bursları", "Kültür Sanat Etkinlikleri", "Çevre Projeleri", "Girişimcilik Destekleri"],
+        funds: 3500000,
+        members: 89
+    };
+    
+    // ============================================================
+    // 13 ERDEM
+    // ============================================================
+    var erdemler = [
+        { id: 1, name: "Adalet", icon: "fa-scale-balanced", desc: "Hakkaniyet ve denge", unlocked: true },
+        { id: 2, name: "Bilgelik", icon: "fa-brain", desc: "Derin kavrayış ve bilgi", unlocked: true },
+        { id: 3, name: "Cesaret", icon: "fa-shield", desc: "Korkuya karşı duruş", unlocked: true },
+        { id: 4, name: "Dayanışma", icon: "fa-hand-holding-heart", desc: "Birlik ve beraberlik", unlocked: true },
+        { id: 5, name: "Erdem", icon: "fa-star", desc: "Ahlaki mükemmellik", unlocked: false },
+        { id: 6, name: "Fedakarlık", icon: "fa-heart", desc: "Karşılıksız verme", unlocked: false },
+        { id: 7, name: "Güven", icon: "fa-handshake", desc: "Sadakat ve itimat", unlocked: false },
+        { id: 8, name: "Hoşgörü", icon: "fa-peace", desc: "Farklılıklara saygı", unlocked: false },
+        { id: 9, name: "İlim", icon: "fa-graduation-cap", desc: "Sürekli öğrenme", unlocked: false },
+        { id: 10, name: "Merhamet", icon: "fa-heart-pulse", desc: "Şefkat ve anlayış", unlocked: false },
+        { id: 11, name: "Sabır", icon: "fa-clock", desc: "Tahammül ve metanet", unlocked: false },
+        { id: 12, name: "Vefa", icon: "fa-hand-holding-heart", desc: "Kadirlik bilmek", unlocked: false },
+        { id: 13, name: "Vicdan", icon: "fa-brain", desc: "İç ses ve doğruluk", unlocked: false }
+    ];
+    
+    // ============================================================
+    // DUYURULAR
+    // ============================================================
+    var duyurular = [
+        { id: 1, title: "Yeni Ortaklık Paketleri Eklendi", date: "2025-06-18", content: "7 farklı ortaklık paketi ile ekosisteme katılabilirsiniz." },
+        { id: 2, title: "Yapay Zeka Destekli Modüller Aktif", date: "2025-06-17", content: "AI Asistanlar ve akıllı öneriler sisteme entegre edildi." },
+        { id: 3, title: "13 Erdem Modülü Yayında", date: "2025-06-16", content: "Evrensel erdemler ile kişisel gelişim yolculuğu başladı." },
+        { id: 4, title: "Vakıf Sistemi Aktif", date: "2025-06-19", content: "Anadolu Vakfı kuruldu. Bağış ve proje desteği başvuruları başladı." },
+        { id: 5, title: "Trend Analiz Modülü Eklendi", date: "2025-06-20", content: "Piyasa trendlerini analiz edebilirsiniz." }
+    ];
+    
+    // ============================================================
+    // 7 ORTAKLIK PAKETI
+    // ============================================================
+    var ortaklikPlans = [
+        { id: 1, name: "Gümüş Ortak", price: 499, commission: 5, features: ["Özel İçerik", "Webinar Erişimi", "Topluluk Desteği"], icon: "fa-gem", color: "#94a3b8" },
+        { id: 2, name: "Altın Ortak", price: 999, commission: 10, features: ["Tüm Gümüş", "VIP Etkinlikler", "Mentorluk"], icon: "fa-crown", color: "#f5b042", popular: true },
+        { id: 3, name: "Platin Ortak", price: 1999, commission: 15, features: ["Tüm Altın", "Özel Danışmanlık", "Yatırım Fırsatları"], icon: "fa-star", color: "#34d399" },
+        { id: 4, name: "Elmas Ortak", price: 3999, commission: 20, features: ["Tüm Platin", "Sınırsız Danışmanlık", "Kar Payı"], icon: "fa-diamond", color: "#60a5fa" },
+        { id: 5, name: "Lider Ortak", price: 7999, commission: 25, features: ["Tüm Elmas", "Yönetim Kurulu", "Strateji Katılımı"], icon: "fa-chess-king", color: "#f5b042" },
+        { id: 6, name: "Vizyoner Ortak", price: 14999, commission: 30, features: ["Tüm Lider", "Kurucu Ortak", "Kar Dağıtımı"], icon: "fa-rocket", color: "#34d399" },
+        { id: 7, name: "Kurucu Ortak", price: 29999, commission: 35, features: ["Tüm Vizyoner", "Sınırsız Kar Payı", "Anadolu Kurucusu"], icon: "fa-building", color: "#f5b042" }
+    ];
+    
+    // ============================================================
+    // MODULLER LISTESI
+    // ============================================================
+    var modules = [
+        { id: "dashboard", icon: "fa-chart-pie", label: "Genel Bakış" },
+        { id: "fire-university", icon: "fa-graduation-cap", label: "FIRE Üniversitesi" },
+        { id: "financial-freedom", icon: "fa-chart-line", label: "Finansal Özgürlük" },
+        { id: "social-network", icon: "fa-users", label: "Sosyal Ağ" },
+        { id: "digital-citizenship", icon: "fa-id-card", label: "Dijital Vatandaşlık" },
+        { id: "leadership-academy", icon: "fa-crown", label: "Liderlik Akademisi" },
+        { id: "investment-platform", icon: "fa-arrow-trend-up", label: "Yatırım Platformu" },
+        { id: "entrepreneurship", icon: "fa-briefcase", label: "Girişimcilik" },
+        { id: "cooperative-economy", icon: "fa-hand-holding-heart", label: "Kooperatif Ekonomi" },
+        { id: "digital-state", icon: "fa-landmark", label: "Dijital Devlet" },
+        { id: "think-tank", icon: "fa-brain", label: "Strateji Düşünce" },
+        { id: "ai-advisors", icon: "fa-robot", label: "AI Danışmanlar" },
+        { id: "knowledge-library", icon: "fa-book", label: "Bilgi Kütüphanesi" },
+        { id: "vision-2053", icon: "fa-eye", label: "Vizyon 2053" },
+        { id: "thermal-life", icon: "fa-heart", label: "Sağlık & Termal" },
+        { id: "analytics-center", icon: "fa-chart-pie", label: "Analitik Merkezi" },
+        { id: "vakif", icon: "fa-hand-holding-heart", label: "Vakıf" },
+        { id: "trend-analiz", icon: "fa-chart-line", label: "Trend Analiz" },
+        { id: "market", icon: "fa-store", label: "Doğal & Dijital Market" },
+        { id: "paketler", icon: "fa-box", label: "Paketler" },
+        { id: "ortaklik", icon: "fa-handshake", label: "Ortaklık" },
+        { id: "erdemler", icon: "fa-star", label: "13 Erdem" },
+        { id: "duyurular", icon: "fa-bullhorn", label: "Duyurular" },
+        { id: "seviyeler", icon: "fa-arrow-trend-up", label: "Seviyeler" }
+    ];
+    
+    // ============================================================
+    // WHATSAPP
+    // ============================================================
+    function whatsappLink(text) {
+        var msg = encodeURIComponent(text);
+        window.open("https://wa.me/905418660202?text=" + msg, "_blank");
+    }
+    
+    function whatsappOrtaklik(planName) {
+        var text = "Merhaba, " + planName + " paketine katılmak istiyorum. Anadolu Network OS ortaklık programına başvuruyorum.";
+        whatsappLink(text);
+    }
+    
+    function whatsappMarket(productName, price) {
+        var text = "Merhaba, " + productName + " ürününü (" + price + " TL) satın almak istiyorum. Anadolu Network OS Doğal & Dijital Market'ten sipariş veriyorum.";
+        whatsappLink(text);
+    }
+    
+    // ============================================================
+    // KULLANICI GIRISI
+    // ============================================================
+    function openLoginModal() {
+        var modal = document.createElement("div");
+        modal.className = "modal";
+        modal.innerHTML = `
+            <div class="modal-content login-modal">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 class="big-title"><i class="fas fa-user" style="margin-right:10px;"></i>${t('login')}</h2>
+                    <button onclick="this.closest('.modal').remove()" style="background:none;border:none;color:#9ca3af;font-size:22px;cursor:pointer;">✕</button>
+                </div>
+                <div style="background:#0f1338;border-radius:12px;padding:20px;border:1px solid #1e2556;">
+                    <input type="email" id="loginEmail" placeholder="E-posta" class="auth-input" value="admin@anadolu.com">
+                    <input type="password" id="loginPassword" placeholder="Şifre" class="auth-input" value="admin123">
+                    <button onclick="handleLogin()" class="auth-btn"><i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>${t('login')}</button>
+                    <p style="color:#4a5580;font-size:12px;text-align:center;margin-top:12px;">Demo: admin@anadolu.com / admin123</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    function handleLogin() {
+        var email = document.getElementById("loginEmail").value;
+        var password = document.getElementById("loginPassword").value;
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].email === email && users[i].password === password) {
+                isLoggedIn = true;
+                isAdmin = (users[i].role === "admin");
+                currentUserObj = users[i];
+                alert(t('welcome') + ", " + users[i].name + "!");
+                document.querySelector('.modal').remove();
+                render();
+                return;
+            }
+        }
+        alert("Hatalı giriş!");
+    }
+    
+    function handleLogout() {
+        isLoggedIn = false;
+        isAdmin = false;
+        currentUserObj = null;
+        render();
+    }
+    
+    // ============================================================
+    // YONETIM PANELI
+    // ============================================================
+    function openAdminPanel() {
+        if (!isLoggedIn) { alert("Lütfen önce giriş yapın!"); openLoginModal(); return; }
+        if (!isAdmin) {
+            var pass = prompt("Yönetici şifresi:");
+            if (pass === "admin123") { isAdmin = true; alert("Yönetici paneline hoş geldiniz!"); renderAdminModal(); }
+            else { alert("Şifre yanlış!"); }
+            return;
+        }
+        renderAdminModal();
+    }
+    
+    function renderAdminModal() {
+        var modal = document.createElement("div");
+        modal.className = "modal";
+        modal.innerHTML = `
+            <div class="modal-content admin-modal">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 class="big-title"><i class="fas fa-shield-alt" style="margin-right:10px;"></i>Yönetici Paneli</h2>
+                    <button onclick="this.closest('.modal').remove()" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;">✕</button>
+                </div>
+                <div style="background:#0f1338;padding:16px;border-radius:12px;border:1px solid #1e2556;margin-bottom:16px;">
+                    <h3 class="mid-title">📦 Ortaklık Paketleri</h3>
+                    <div style="max-height:200px;overflow-y:auto;">
+                        ${ortaklikPlans.map(function(p) {
+                            return '<div style="display:flex;justify-content:space-between;align-items:center;background:#0a0f2c;padding:10px;border-radius:8px;border-bottom:1px solid #1e2556;">' +
+                                '<div><span style="color:white;font-weight:500;font-size:13px;">' + p.name + '</span><div style="color:#9ca3af;font-size:11px;">₺' + p.price + ' | %' + p.commission + '</div></div>' +
+                                '<button onclick="deleteOrtaklik(' + p.id + ')" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;">Sil</button>' +
+                            '</div>';
+                        }).join('')}
+                    </div>
+                    <button onclick="addOrtaklik()" class="btn-gold" style="width:100%;margin-top:10px;padding:8px;font-size:13px;">+ Yeni Paket Ekle</button>
+                </div>
+                <button onclick="this.closest('.modal').remove()" class="btn-gold" style="width:100%;">Kapat</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    function addOrtaklik() {
+        var name = prompt("Paket Adı:");
+        if (!name) return;
+        var price = parseFloat(prompt("Fiyat (₺):"));
+        if (!price) return;
+        var commission = parseFloat(prompt("Komisyon (%):"));
+        if (isNaN(commission)) return;
+        ortaklikPlans.push({ id: ortaklikPlans.length + 1, name: name, price: price, commission: commission, features: ["Özel İçerik", "Topluluk Desteği"], icon: "fa-star", color: "#f5b042" });
+        alert("Paket eklendi!");
+        renderAdminModal();
+        render();
+    }
+    
+    function deleteOrtaklik(id) {
+        if (!confirm("Silmek istediğinize emin misiniz?")) return;
+        ortaklikPlans = ortaklikPlans.filter(function(p) { return p.id !== id; });
+        alert("Paket silindi!");
+        renderAdminModal();
+        render();
+    }
+    
+    // ============================================================
+    // MODUL ICINDE BILGI EKLEME/SILME
+    // ============================================================
+    function addModuleItem(moduleId) {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        var newItem = prompt("Yeni bilgi/konu ekleyin:");
+        if (!newItem) return;
+        if (moduleContents[moduleId]) {
+            moduleContents[moduleId].items.push(newItem);
+            alert("Bilgi eklendi!");
+            render();
+        }
+    }
+    
+    function deleteModuleItem(moduleId, index) {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        if (!confirm("Bu bilgiyi silmek istediğinize emin misiniz?")) return;
+        if (moduleContents[moduleId]) {
+            moduleContents[moduleId].items.splice(index, 1);
+            alert("Bilgi silindi!");
+            render();
+        }
+    }
+    
+    // ============================================================
+    // MODUL EKLEME/SILME
+    // ============================================================
+    function addModule() {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        var name = prompt("Modül Adı (Türkçe):");
+        if (!name) return;
+        var icon = prompt("Font Awesome ikonu (örn: fa-chart-line):");
+        if (!icon) icon = "fa-circle";
+        var newId = "modul-" + Date.now();
+        modules.push({ id: newId, icon: icon, label: name });
+        moduleContents[newId] = { title: name, icon: icon, items: ["Hoş geldiniz!"] };
+        alert("Modül eklendi!");
+        render();
+    }
+    
+    function deleteModule(moduleId) {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        if (moduleId === "dashboard") { alert("Ana sayfa silinemez!"); return; }
+        if (!confirm("Bu modülü silmek istediğinize emin misiniz?")) return;
+        modules = modules.filter(function(m) { return m.id !== moduleId; });
+        delete moduleContents[moduleId];
+        if (currentPage === moduleId) currentPage = "dashboard";
+        alert("Modül silindi!");
+        render();
+    }
+    
+    // ============================================================
+    // MARKET URUN EKLEME/SILME
+    // ============================================================
+    function addMarketProduct() {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        var name = prompt("Ürün Adı:");
+        if (!name) return;
+        var price = parseFloat(prompt("Fiyat (₺):"));
+        if (!price) return;
+        var category = prompt("Kategori (Gıda, Sağlık, Kozmetik, Baharat):");
+        if (!category) category = "Diğer";
+        var image = prompt("Emoji (örnek: 🍯):");
+        if (!image) image = "📦";
+        var stock = parseInt(prompt("Stok Adedi:"));
+        if (isNaN(stock)) stock = 0;
+        var newId = marketProducts.length + 1;
+        marketProducts.push({ id: newId, name: name, price: price, category: category, image: image, stock: stock });
+        alert("Ürün eklendi!");
+        render();
+    }
+    
+    function deleteMarketProduct(id) {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+        marketProducts = marketProducts.filter(function(p) { return p.id !== id; });
+        alert("Ürün silindi!");
+        render();
+    }
+    
+    // ============================================================
+    // VAKIF PROJE EKLEME/SILME
+    // ============================================================
+    function addVakifProject() {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        var newProject = prompt("Yeni proje adı:");
+        if (!newProject) return;
+        vakifData.projects.push(newProject);
+        alert("Proje eklendi!");
+        render();
+    }
+    
+    function deleteVakifProject(index) {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        if (!confirm("Bu projeyi silmek istediğinize emin misiniz?")) return;
+        vakifData.projects.splice(index, 1);
+        alert("Proje silindi!");
+        render();
+    }
+    
+    // ============================================================
+    // DUYURU EKLEME/SILME
+    // ============================================================
+    function addDuyuru() {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        var title = prompt("Duyuru Başlığı:");
+        if (!title) return;
+        var content = prompt("Duyuru İçeriği:");
+        if (!content) return;
+        duyurular.push({ id: duyurular.length + 1, title: title, date: new Date().toISOString().split('T')[0], content: content });
+        alert("Duyuru eklendi!");
+        render();
+    }
+    
+    function deleteDuyuru(id) {
+        if (!isAdmin) { alert("Yetkiniz yok!"); return; }
+        if (!confirm("Silmek istediğinize emin misiniz?")) return;
+        duyurular = duyurular.filter(function(d) { return d.id !== id; });
+        alert("Duyuru silindi!");
+        render();
+    }
+    
+    // ============================================================
+    // TREND ANALIZ SAYFASI
+    // ============================================================
+    function renderTrendAnaliz() {
+        setTimeout(function() {
+            var ctx = document.getElementById('trendChart');
+            if (ctx) {
+                try {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: trendData.labels,
+                            datasets: [{
+                                label: 'Trend Endeksi',
+                                data: trendData.values,
+                                borderColor: '#f5b042',
+                                backgroundColor: 'rgba(245,176,66,0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { labels: { color: '#f5b042' } }
+                            },
+                            scales: {
+                                y: { ticks: { color: '#9ca3af' } },
+                                x: { ticks: { color: '#9ca3af' } }
+                            }
+                        }
+                    });
+                } catch(e) {}
+            }
+        }, 200);
+        
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-chart-line" style="margin-right:10px;"></i>Trend Analizleri</h2>';
+        html += '<div class="card">';
+        html += '<p class="readable-text">Piyasa, yatırım ve sektörel trend analizleri. Yapay zeka destekli öngörüler.</p>';
+        html += '<canvas id="trendChart" height="200"></canvas>';
+        html += '</div>';
+        html += '<div class="card">';
+        html += '<h3 class="mid-title">📊 Kategori Bazlı Trendler</h3>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">';
+        for (var i = 0; i < trendData.categories.length; i++) {
+            var c = trendData.categories[i];
+            var cls = c.direction === 'up' ? 'trend-up' : (c.direction === 'down' ? 'trend-down' : 'trend-neutral');
+            html += '<div style="background:#0f2c44;border-radius:12px;padding:14px;text-align:center;border:1px solid #1e2556;">';
+            html += '<p style="color:white;font-weight:500;">' + c.name + '</p>';
+            html += '<p class="' + cls + '" style="font-size:18px;font-weight:bold;">' + c.change + '</p>';
+            html += '<p style="color:#4a5580;font-size:11px;">Son 30 gün</p>';
+            html += '</div>';
+        }
+        html += '</div></div>';
+        return html;
+    }
+    
+    // ============================================================
+    // MARKET SAYFASI (12 Urun)
+    // ============================================================
+    function renderMarket() {
+        var html = '';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">';
+        html += '<h2 class="big-title"><i class="fas fa-store" style="margin-right:10px;"></i>Doğal & Dijital Market</h2>';
+        if (isAdmin) {
+            html += '<button onclick="addMarketProduct()" class="btn-gold" style="padding:6px 14px;font-size:12px;">+ Ürün Ekle</button>';
+        }
+        html += '</div>';
+        html += '<p class="readable-text">12 doğal ve dijital ürün. <strong style="color:#f5b042;">WhatsApp ile sipariş verin.</strong></p>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">';
+        for (var i = 0; i < marketProducts.length; i++) {
+            var p = marketProducts[i];
+            html += '<div class="product-card">';
+            html += '<span class="product-img">' + p.image + '</span>';
+            html += '<h4 style="color:white;font-weight:600;font-size:15px;">' + p.name + '</h4>';
+            html += '<p style="color:#9ca3af;font-size:12px;">' + p.category + ' | Stok: ' + p.stock + '</p>';
+            html += '<p style="color:#f5b042;font-size:20px;font-weight:700;">₺' + p.price + '</p>';
+            html += '<button onclick="whatsappMarket(\'' + p.name + '\', ' + p.price + ')" class="btn-gold" style="width:100%;padding:6px;font-size:12px;"><i class="fab fa-whatsapp" style="margin-right:6px;"></i>Satın Al</button>';
+            if (isAdmin) {
+                html += '<button onclick="deleteMarketProduct(' + p.id + ')" style="margin-top:6px;background:#ef4444;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;width:100%;">Sil</button>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+    
+    // ============================================================
+    // PAKETLER SAYFASI (Ortaklık Paketleri)
+    // ============================================================
+    function renderPaketler() {
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-box" style="margin-right:10px;"></i>Paketler</h2>';
+        html += '<p class="readable-text">7 farklı ortaklık paketi ile ekosisteme katılın. <strong style="color:#f5b042;">WhatsApp ile başvurun.</strong></p>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">';
+        for (var i = 0; i < ortaklikPlans.length; i++) {
+            var p = ortaklikPlans[i];
+            html += '<div class="plan-card ' + (p.popular ? 'plan-popular' : '') + '">';
+            if (p.popular) html += '<div style="background:#f5b042;color:#0a0f2c;font-size:10px;padding:2px 12px;border-radius:999px;display:inline-block;margin-bottom:6px;font-weight:600;">Popüler</div>';
+            html += '<i class="fas ' + p.icon + '" style="color:' + p.color + ';font-size:28px;margin-bottom:6px;"></i>';
+            html += '<h3 style="color:white;font-size:17px;font-weight:600;">' + p.name + '</h3>';
+            html += '<p style="color:#f5b042;font-size:22px;font-weight:700;margin:4px 0;">₺' + p.price + '</p>';
+            html += '<p style="color:#9ca3af;font-size:11px;">Komisyon: %' + p.commission + '</p>';
+            html += '<ul style="text-align:left;color:#9ca3af;font-size:11px;margin:8px 0;padding-left:16px;">';
+            for (var j = 0; j < p.features.length; j++) {
+                html += '<li style="margin:2px 0;"><i class="fas fa-check" style="color:#34d399;margin-right:6px;"></i>' + p.features[j] + '</li>';
+            }
+            html += '</ul>';
+            html += '<button onclick="whatsappOrtaklik(\'' + p.name + '\')" class="btn-gold" style="width:100%;padding:8px;font-size:12px;"><i class="fab fa-whatsapp" style="margin-right:6px;"></i>Katıl</button>';
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+    
+    // ============================================================
+    // VAKIF MODULU
+    // ============================================================
+    function renderVakif() {
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-hand-holding-heart" style="margin-right:10px;"></i>Vakıf Sistemi</h2>';
+        html += '<div class="card">';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">';
+        html += '<div class="vakif-card"><p style="color:#9ca3af;font-size:11px;">Vakıf Adı</p><h3 style="color:white;font-size:18px;font-weight:600;">' + vakifData.name + '</h3></div>';
+        html += '<div class="vakif-card"><p style="color:#9ca3af;font-size:11px;">Kuruluş Yılı</p><h3 style="color:white;font-size:18px;font-weight:600;">' + vakifData.established + '</h3></div>';
+        html += '<div class="vakif-card"><p style="color:#9ca3af;font-size:11px;">Toplam Fon</p><h3 style="color:#f5b042;font-size:18px;font-weight:700;">₺' + vakifData.funds.toLocaleString() + '</h3></div>';
+        html += '<div class="vakif-card"><p style="color:#9ca3af;font-size:11px;">Üye Sayısı</p><h3 style="color:white;font-size:18px;font-weight:600;">' + vakifData.members + '</h3></div>';
+        html += '</div>';
+        html += '<div style="margin-top:16px;background:#0f1338;padding:16px;border-radius:12px;border:1px solid #1e2556;">';
+        html += '<p style="color:#f5b042;font-weight:600;">🎯 Misyon</p>';
+        html += '<p style="color:#9ca3af;">' + vakifData.mission + '</p>';
+        html += '</div>';
+        html += '<div style="margin-top:16px;">';
+        html += '<p style="color:#f5b042;font-weight:600;margin-bottom:8px;">📋 Projeler</p>';
+        for (var i = 0; i < vakifData.projects.length; i++) {
+            html += '<div class="info-item"><span style="color:white;">' + (i+1) + '. ' + vakifData.projects[i] + '</span>';
+            if (isAdmin) {
+                html += '<button onclick="deleteVakifProject(' + i + ')" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:2px 10px;cursor:pointer;font-size:11px;">Sil</button>';
+            }
+            html += '</div>';
+        }
+        if (isAdmin) {
+            html += '<button onclick="addVakifProject()" class="btn-gold" style="margin-top:12px;padding:6px 14px;font-size:12px;">+ Proje Ekle</button>';
+        }
+        html += '</div></div>';
+        return html;
+    }
+    
+    // ============================================================
+    // SEVIYELER SAYFASI (Yazılar belirginleştirildi)
+    // ============================================================
+    function renderSeviyeler() {
+        var currentRank = getCurrentRank();
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-arrow-trend-up" style="margin-right:10px;"></i>Seviyeler (Ortak → Kağan)</h2>';
+        html += '<div class="card">';
+        html += '<p class="readable-text" style="font-size:16px; color:#e5e7eb;">Anadolu Network OS ekosisteminde ilerleme seviyeleri. XP puanı kazanarak seviye atlayın.</p>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px; margin-top:12px;">';
+        for (var i = 0; i < rankLevels.length; i++) {
+            var r = rankLevels[i];
+            var isCurrent = (r.name === currentRank.name);
+            var isUnlocked = (userProfile.xp >= r.xp);
+            var borderColor = isCurrent ? '#f5b042' : (isUnlocked ? '#f5b04240' : '#1e2556');
+            html += '<div style="background:#0f2c44;border-radius:16px;padding:18px;text-align:center;border:2px solid ' + borderColor + '; transition:0.2s;">';
+            html += '<i class="fas ' + r.icon + '" style="color:' + (isUnlocked ? '#f5b042' : '#4a5580') + ';font-size:32px;margin-bottom:8px;display:block;"></i>';
+            html += '<div style="font-size:20px; font-weight:700; color:' + (isUnlocked ? '#f5b042' : '#6b7280') + ';">' + r.name + '</div>';
+            html += '<div style="font-size:14px; color:#d1d5db; margin-top:4px;">' + r.desc + '</div>';
+            html += '<div style="font-size:16px; font-weight:600; color:#ffffff; margin-top:6px;">' + r.xp + ' XP</div>';
+            if (isCurrent) {
+                html += '<div style="margin-top:8px;background:#f5b042;color:#0a0f2c;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:700;display:inline-block;">Mevcut Seviye</div>';
+            } else if (!isUnlocked) {
+                html += '<div style="margin-top:8px;color:#6b7280;font-size:13px;">🔒 Kilitli</div>';
+            } else {
+                html += '<div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:600;">✅ Açık</div>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        html += '<div style="margin-top:20px;background:#0f1338;padding:20px;border-radius:12px;border:1px solid #1e2556;">';
+        html += '<p style="color:#f5b042;font-size:18px;font-weight:600;">📊 İlerleme Durumu</p>';
+        html += '<p style="color:white;font-size:16px;">Mevcut Seviye: <strong style="color:#f5b042;font-size:20px;">' + currentRank.name + '</strong></p>';
+        var nextRank = getNextRank();
+        if (nextRank) {
+            var progress = getProgressToNext();
+            html += '<p style="color:#d1d5db;font-size:15px;">Sonraki Seviye: ' + nextRank.name + ' (' + nextRank.xp + ' XP)</p>';
+            html += '<div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:' + progress + '%;"></div></div>';
+            html += '<p style="color:#9ca3af;font-size:13px;margin-top:4px;">%' + Math.round(progress) + ' tamamlandı</p>';
+        } else {
+            html += '<p style="color:#34d399;font-size:18px;font-weight:700;">🏆 En yüksek seviyedesiniz!</p>';
+        }
+        html += '</div></div>';
+        return html;
+    }
+    
+    // ============================================================
+    // 13 ERDEM SAYFASI
+    // ============================================================
+    function renderErdemler() {
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-star" style="margin-right:10px;"></i>13 Evrensel Erdem</h2>';
+        html += '<p class="readable-text">İnsanlığın ortak değerleri ile kişisel ve toplumsal gelişim.</p>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">';
+        for (var i = 0; i < erdemler.length; i++) {
+            var e = erdemler[i];
+            html += '<div class="card" style="text-align:center;padding:16px;border-color:' + (e.unlocked ? '#f5b042' : '#1e2556') + ';">';
+            html += '<i class="fas ' + e.icon + '" style="color:' + (e.unlocked ? '#f5b042' : '#4a5580') + ';font-size:28px;margin-bottom:8px;display:block;"></i>';
+            html += '<h3 style="color:' + (e.unlocked ? 'white' : '#4a5580') + ';font-size:16px;font-weight:600;">' + e.name + '</h3>';
+            html += '<p style="color:#9ca3af;font-size:12px;">' + e.desc + '</p>';
+            html += '<div style="margin-top:6px;">' + (e.unlocked ? '<span style="color:#34d399;">✅ Açık</span>' : '<span style="color:#4a5580;">🔒 Kilitli</span>') + '</div>';
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+    
+    // ============================================================
+    // DUYURU SAYFASI
+    // ============================================================
+    function renderDuyurular() {
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-bullhorn" style="margin-right:10px;"></i>Duyurular</h2>';
+        html += '<p class="readable-text">Anadolu Network OS ekosisteminden son haberler.</p>';
+        if (isAdmin) {
+            html += '<button onclick="addDuyuru()" class="btn-gold" style="margin-bottom:16px;padding:8px 16px;font-size:13px;">+ Yeni Duyuru Ekle</button>';
+        }
+        for (var i = 0; i < duyurular.length; i++) {
+            var d = duyurular[i];
+            html += '<div class="duyuru-item">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+            html += '<h4 style="color:white;font-weight:600;">' + d.title + '</h4>';
+            html += '<span style="color:#9ca3af;font-size:11px;">' + d.date + '</span>';
+            if (isAdmin) {
+                html += '<button onclick="deleteDuyuru(' + d.id + ')" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:2px 10px;cursor:pointer;font-size:11px;">Sil</button>';
+            }
+            html += '</div>';
+            html += '<p style="color:#9ca3af;font-size:13px;margin-top:4px;">' + d.content + '</p>';
+            html += '</div>';
+        }
+        return html;
+    }
+    
+    // ============================================================
+    // MODUL SAYFASI (Icerikli)
+    // ============================================================
+    function renderModulePage(moduleId) {
+        var mod = moduleContents[moduleId];
+        if (!mod) {
+            return '<h2 class="big-title">Modül Bulunamadı</h2><div class="card"><p class="readable-text">Bu modül henüz içerik eklenmemiş.</p></div>';
+        }
+        var html = '';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">';
+        html += '<h2 class="big-title"><i class="fas ' + mod.icon + '" style="margin-right:10px;"></i>' + mod.title + '</h2>';
+        if (isAdmin) {
+            html += '<button onclick="addModuleItem(\'' + moduleId + '\')" class="btn-gold" style="padding:6px 14px;font-size:12px;">+ Bilgi Ekle</button>';
+            html += '<button onclick="deleteModule(\'' + moduleId + '\')" style="margin-left:6px;background:#ef4444;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;">Modülü Sil</button>';
+        }
+        html += '</div>';
+        html += '<div class="card">';
+        html += '<p class="readable-text">🤖 Yapay Zeka Destekli | ' + mod.items.length + ' konu</p>';
+        for (var i = 0; i < mod.items.length; i++) {
+            html += '<div class="info-item">';
+            html += '<span style="color:white;">' + (i+1) + '. ' + mod.items[i] + '</span>';
+            if (isAdmin) {
+                html += '<button onclick="deleteModuleItem(\'' + moduleId + '\', ' + i + ')" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;">Sil</button>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+    
+    // ============================================================
+    // ORTAKLIK SAYFASI
+    // ============================================================
+    function renderOrtaklik() {
+        var html = '';
+        html += '<h2 class="big-title"><i class="fas fa-handshake" style="margin-right:10px;"></i>Ortaklık Sistemi</h2>';
+        html += '<p class="readable-text">7 farklı ortaklık paketi ile ekosisteme katılın. <strong style="color:#f5b042;">WhatsApp ile başvurun.</strong></p>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">';
+        for (var i = 0; i < ortaklikPlans.length; i++) {
+            var p = ortaklikPlans[i];
+            html
